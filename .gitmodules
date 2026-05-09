@@ -1,0 +1,9 @@
+[submodule "services/user-service"]
+	path = services/user-service
+	url = git@github.com:Iv05An/user-service.git
+[submodule "services/survey-service"]
+	path = services/survey-service
+	url = git@github.com:isco25/survey-service.git
+[submodule "services/analytics-service"]
+	path = services/analytics-service
+	url = git@github.com:bozvan/analytics-service.git

@@ -1,0 +1,87 @@
+services:
+  user-service:
+    build:
+      context: ./services/user-service
+    environment:
+      APP_NAME: User Service
+      DATABASE_URL: ${USER_SERVICE_DATABASE_URL:-sqlite:///./data/user-service.db}
+      JWT_SECRET: ${JWT_SECRET:-change-me-local-jwt-secret}
+      JWT_EXPIRATION_MINUTES: ${JWT_EXPIRATION_MINUTES:-60}
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:-change-me-local-internal-key}
+    ports:
+      - "${USER_SERVICE_PORT:-8080}:8080"
+    volumes:
+      - user-service-data:/app/data
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health')",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 5s
+
+  survey-service:
+    build:
+      context: ./services/survey-service
+    depends_on:
+      user-service:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ${SURVEY_SERVICE_DATABASE_URL:-sqlite:///./data/survey.db}
+      USER_SERVICE_URL: http://user-service:8080
+      ANALYTICS_SERVICE_URL: http://analytics-service:8082
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:-change-me-local-internal-key}
+      HTTP_TIMEOUT_SECONDS: ${HTTP_TIMEOUT_SECONDS:-5.0}
+    ports:
+      - "${SURVEY_SERVICE_PORT:-8081}:8081"
+    volumes:
+      - survey-service-data:/app/data
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8081/health')",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 5s
+
+  analytics-service:
+    build:
+      context: ./services/analytics-service
+    depends_on:
+      survey-service:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ${ANALYTICS_SERVICE_DATABASE_URL:-sqlite:///./data/analytics.db}
+      SURVEY_SERVICE_URL: http://survey-service:8081
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:-change-me-local-internal-key}
+    ports:
+      - "${ANALYTICS_SERVICE_PORT:-8082}:8082"
+    volumes:
+      - analytics-service-data:/app/data
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8082/health')",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 5s
+
+volumes:
+  user-service-data:
+  survey-service-data:
+  analytics-service-data:
