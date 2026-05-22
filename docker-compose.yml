@@ -8,6 +8,9 @@ services:
       JWT_SECRET: ${JWT_SECRET:-change-me-local-jwt-secret}
       JWT_EXPIRATION_MINUTES: ${JWT_EXPIRATION_MINUTES:-60}
       INTERNAL_API_KEY: ${INTERNAL_API_KEY:-change-me-local-internal-key}
+      SURVEY_SERVICE_URL: http://survey-service:8081
+      ANALYTICS_SERVICE_URL: http://analytics-service:8082
+      HTTP_TIMEOUT_SECONDS: ${HTTP_TIMEOUT_SECONDS:-5.0}
     ports:
       - "${USER_SERVICE_PORT:-8080}:8080"
     volumes:
